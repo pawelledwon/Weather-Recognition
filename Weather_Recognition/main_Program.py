@@ -4,6 +4,7 @@ from tensorflow.keras import layers, models
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from tensorflow.keras.regularizers import l2
 
 print(tf.config.list_physical_devices())
@@ -54,10 +55,24 @@ model.add(layers.Dense(11, activation='softmax'))
 model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
 
 # Train the model using the augmented data
-model.fit(datagen.flow(x_train, y_train, batch_size=32), epochs=75, validation_data=(x_valid, y_valid))
+model.fit(datagen.flow(x_train, y_train, batch_size=32), epochs=100, validation_data=(x_valid, y_valid))
 
 loss, accuracy = model.evaluate(x_valid, y_valid)
 print(f"Loss: {loss}")
 print(f"Accuracy: {accuracy}")
 
 model.save('image_classifier.h5')
+
+y_pred = np.argmax(model.predict(x_valid), axis=1)
+
+# Confusion Matrix
+cm = confusion_matrix(y_valid, y_pred, labels=np.arange(len(weather_names)))
+
+# Plot Confusion Matrix with adjusted figure size and font size
+fig, ax = plt.subplots(figsize=(10, 10))  # Adjust figure size as needed
+cmd = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=weather_names)
+cmd.plot(ax=ax, cmap='Blues', xticks_rotation='vertical')
+plt.xticks(fontsize=10)  # Adjust font size as needed
+plt.yticks(fontsize=10)  # Adjust font size as needed
+plt.title('Confusion Matrix')
+plt.show()
